@@ -1,0 +1,75 @@
+#!/usr/bin/env python3
+import concurrent.futures
+import requests
+import argparse
+import sys
+
+# create an argument parser
+parser = argparse.ArgumentParser(description='Directory buster')
+parser.add_argument('-w','--wordlist', type=str, help='location of word list file')
+parser.add_argument('-u','--url', type=str, help='url of targetated Website')
+parser.add_argument('-f','--fileext', type=str, help='file exentions e.g : .php')
+parser.add_argument('-t','--tag', type=str, help='tag for services e.g : wp-')
+# parse the arguments
+args = parser.parse_args()
+
+
+# set the wordlist variable
+
+
+
+url = str(args.url)
+wordlist = str(args.wordlist)
+fileext= str(args.fileext)
+tag= str(args.tag)
+
+if wordlist == "None" or url == "None":
+    parser.print_help()
+    exit()
+
+print(("""\
+
+███████╗██╗  ██╗ ██████╗  ██████╗  ██████╗  ██████╗ ████████╗██╗  ██╗
+██╔════╝██║  ██║██╔═══██╗██╔════╝ ██╔════╝ ██╔═══██╗╚══██╔══╝██║  ██║
+███████╗███████║██║   ██║██║  ███╗██║  ███╗██║   ██║   ██║   ███████║
+╚════██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║   ██║   ██╔══██║
+███████║██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝   ██║   ██║  ██║
+╚══════╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝
+                                                                     
+dirbuster:
+
+
+                    """))
+
+
+print(f"\033[32mUrl Set : {url}\033[0m ")
+
+print(f"\033[32mWordlist Set : {wordlist}\033[0m ")
+
+print(f"\033[32m{fileext}\033[0m ") if fileext != "None" else print("\033[32mNo file Extentions\033[0m ")
+
+print(f"\033[32m{tag}\033[0m ") if tag != "None" else print("\033[32mNo tag\033[0m ")
+
+
+
+
+		
+with open(wordlist, 'r') as file:
+    words = [word.strip() for word in file]
+    print("\033[32mWordList Loaded\033[0m ")
+print("─"*50)
+
+# loop over the words and send requests
+with requests.Session() as session:
+    for word in words:
+        try:
+            full_url = f"{url}/{word}{fileext}" if fileext !="None"  else f"{url}/{word}" 
+            full_url =  f"{url}/{tag}{word}{fileext}" if fileext !="None" and tag !="None" else f"{url}/{word}" 
+            response = session.get(full_url)
+            if response.status_code != 404:
+                print(response.url)
+
+        except KeyboardInterrupt:
+            print("\033[31m\nQuitting...\033[0m")
+            print("─"*50)
+            sys.exit(0)
