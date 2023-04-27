@@ -14,8 +14,6 @@ parser.add_argument('-u','--url', type=str, help='url of targetated Website')
 parser.add_argument('-f','--fileext', type=str, help='file exentions e.g : .php')
 parser.add_argument('-t','--tag', type=str, help='tag for services e.g : wp-')
 parser.add_argument('-v','--verbose',action='store_true', help='More words')
-parser.add_argument('-p', '--params', nargs='*', help='key value pairs separated by =', default=[])
-parser.add_argument('-hV','--httpverb',type=str, help='GET POST OPTION PUT DELETE')
 
 
 args = parser.parse_args()
