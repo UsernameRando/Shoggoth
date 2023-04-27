@@ -127,8 +127,9 @@ if args.simple or not args.complex:
         words = [word.strip() for word in file]
         print("\033[32mWordList Loaded\033[0m ")
     print("─"*50)
-
+NUM_THREADS=10
     # loop over the words and send requests
+def scan(word_subset):
     with requests.Session() as session:
         for word in words:
             try:
@@ -142,3 +143,18 @@ if args.simple or not args.complex:
                 print("\033[31m\nQuitting...\033[0m")
                 print("─"*50)
                 sys.exit(0)
+                
+words_per_thread = len(words) // NUM_THREADS
+threads = []
+for i in range(NUM_THREADS):
+    words_subset = words[i*words_per_thread:(i+1)*words_per_thread]
+    t = threading.Thread(target=scan, args=(words_subset,))
+    t.daemon = True
+    threads.append(t)
+
+for t in threads:
+    t.start()
+
+for t in threads:
+        t.join()
+
