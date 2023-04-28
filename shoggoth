@@ -14,7 +14,10 @@ parser.add_argument('-u','--url', type=str, help='url of targetated Website')
 parser.add_argument('-f','--fileext', type=str, help='file exentions e.g : .php')
 parser.add_argument('-t','--tag', type=str, help='tag for services e.g : wp-')
 parser.add_argument('-v','--verbose',action='store_true', help='More words')
-
+parser.add_argument('-p', '--params', nargs='*', help='key value pairs separated by =', default=[])
+parser.add_argument('-hV','--httpverb',type=str, help='GET POST OPTION PUT DELETE')
+parser.add_argument('-sI','--simple',action='store_true', help="Simple version")
+parser.add_argument('-cO','--complex',action='store_true', help="Complex version")
 
 args = parser.parse_args()
 
@@ -39,52 +42,103 @@ if wordlist == "None" or url == "None":
     parser.print_help()
     exit()
 
+if args.complex:
+    print(("""\
 
-print(("""\
-
-███████╗██╗  ██╗ ██████╗  ██████╗  ██████╗  ██████╗ ████████╗██╗  ██╗
-██╔════╝██║  ██║██╔═══██╗██╔════╝ ██╔════╝ ██╔═══██╗╚══██╔══╝██║  ██║
-███████╗███████║██║   ██║██║  ███╗██║  ███╗██║   ██║   ██║   ███████║
-╚════██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║   ██║   ██╔══██║
-███████║██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝   ██║   ██║  ██║
-╚══════╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝
-
-dirbuster:
-
-
-                    """))
+    ███████╗██╗  ██╗ ██████╗  ██████╗  ██████╗  ██████╗ ████████╗██╗  ██╗
+    ██╔════╝██║  ██║██╔═══██╗██╔════╝ ██╔════╝ ██╔═══██╗╚══██╔══╝██║  ██║
+    ███████╗███████║██║   ██║██║  ███╗██║  ███╗██║   ██║   ██║   ███████║
+    ╚════██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║   ██║   ██╔══██║
+    ███████║██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝   ██║   ██║  ██║
+    ╚══════╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝
+    may be slower than simple mode 
+                                                                        
+    dirbuster COMPLEX EDITION:
 
 
-print(f"\033[32mUrl Set : {url}\033[0m ")
-
-print(f"\033[32mWordlist Set : {wordlist}\033[0m ")
-
-print(f"\033[32m{fileext}\033[0m ") if fileext != "None" else print("\033[32mNo file Extentions\033[0m ")
-
-print(f"\033[32m{tag}\033[0m ") if tag != "None" else print("\033[32mNo tag\033[0m ")
+                        """))
 
 
+    print(f"\033[32mUrl Set : {url}\033[0m ")
+    print(f"\033[32mWordlist Set : {wordlist}\033[0m ")
+    print(f"\033[32mverbose\033[0m ") if args.verbose  else print("\033[32mNo verbose \033[0m ")
+    print(f"\033[32mparams : {queary}\033[0m ") if queary != "None" else print("\033[32mNo queary\033[0m ")
+    print(f"\033[32mfile extentions : {fileext}\033[0m ") if fileext != "None" else print("\033[32mNo file Extentions\033[0m ")
+    print(f"\033[32mtag : {tag}\033[0m ") if tag != "None" else print("\033[32mNo tag\033[0m ")
+    print(f"\033[32mhttp verb : {httpverb}\033[0m ")
 
 
 
-with open(wordlist, 'r') as file:
-    words = [word.strip() for word in file]
-    print("\033[32mWordList Loaded\033[0m ")
-print("─"*50)
+            
+    with open(wordlist, 'r') as file:
+        words = [word.strip() for word in file]
+    print("─"*50)
+
+    # loop over the words and send requests
+    with requests.Session() as session:
+        for word in words:
+            try:
+                full_url = f"{url}/{word}{fileext}" if fileext !="None"  else f"{url}/{word}" 
+                full_url =  f"{url}/{tag}{word}{fileext}" if fileext !="None" and tag !="None" else f"{url}/{word}" 
+            
+                response = requests.post(full_url,params=queary) if len(queary) != 0 and httpverb=="POST" else session.post(full_url)
+                response = requests.get(full_url,params=queary) if len(queary) != 0 and httpverb=="GET" else session.get(full_url)
+                response = requests.options(full_url,params=queary) if len(queary) != 0 and httpverb=="OPTIONS" else session.options(full_url)
+                response = requests.DELETE(full_url,params=queary) if len(queary) != 0 and httpverb=="DELETE" else session.get(full_url)
+                response = requests.post(full_url,params=queary) if len(queary) != 0 and httpverb=="PUT" else session.get(full_url)
+                if response.status_code != 404:
+                    print(response.url, response.status_code)
+                elif args.verbose:
+                    print(f"{response.url}  {response.status_code}")
+
+            except KeyboardInterrupt:
+                print("\033[31m\nQuitting...\033[0m")
+                print("─"*50)
+                sys.exit(0)
+if args.simple or not args.complex:
+    print(("""\
+
+    ███████╗██╗  ██╗ ██████╗  ██████╗  ██████╗  ██████╗ ████████╗██╗  ██╗
+    ██╔════╝██║  ██║██╔═══██╗██╔════╝ ██╔════╝ ██╔═══██╗╚══██╔══╝██║  ██║
+    ███████╗███████║██║   ██║██║  ███╗██║  ███╗██║   ██║   ██║   ███████║
+    ╚════██║██╔══██║██║   ██║██║   ██║██║   ██║██║   ██║   ██║   ██╔══██║
+    ███████║██║  ██║╚██████╔╝╚██████╔╝╚██████╔╝╚██████╔╝   ██║   ██║  ██║
+    ╚══════╝╚═╝  ╚═╝ ╚═════╝  ╚═════╝  ╚═════╝  ╚═════╝    ╚═╝   ╚═╝  ╚═╝
+
+    dirbuster:
 
 
-with requests.Session() as session:
-for word in words:
-    try:
-        full_url = f"{url}/{word}{fileext}" if fileext !="None"  else f"{url}/{word}"
-        full_url =  f"{url}/{tag}{word}{fileext}" if fileext !="None" and tag !="None" else f"{url}/{word}"
-        response = session.get(full_url)
-        if response.status_code != 404:
-            print(response.url)
-
-    except KeyboardInterrupt:
-        print("\033[31m\nQuitting...\033[0m")
-        print("─"*50)
-        sys.exit(0)
+                        """))
 
 
+    print(f"\033[32mUrl Set : {url}\033[0m ")
+
+    print(f"\033[32mWordlist Set : {wordlist}\033[0m ")
+
+    print(f"\033[32m{fileext}\033[0m ") if fileext != "None" else print("\033[32mNo file Extentions\033[0m ")
+
+    print(f"\033[32m{tag}\033[0m ") if tag != "None" else print("\033[32mNo tag\033[0m ")
+
+
+
+
+
+    with open(wordlist, 'r') as file:
+        words = [word.strip() for word in file]
+        print("\033[32mWordList Loaded\033[0m ")
+    print("─"*50)
+
+    # loop over the words and send requests
+    with requests.Session() as session:
+        for word in words:
+            try:
+                full_url = f"{url}/{word}{fileext}" if fileext !="None"  else f"{url}/{word}"
+                full_url =  f"{url}/{tag}{word}{fileext}" if fileext !="None" and tag !="None" else f"{url}/{word}"
+                response = session.get(full_url)
+                if response.status_code != 404:
+                    print(response.url)
+
+            except KeyboardInterrupt:
+                print("\033[31m\nQuitting...\033[0m")
+                print("─"*50)
+                sys.exit(0)
